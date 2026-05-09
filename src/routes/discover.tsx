@@ -106,16 +106,13 @@ function Discover() {
         </div>
         <button
           onClick={() => {
-            if (!confirm("Reset and start over? This clears your preference, seen names, and liked list.")) return;
+            if (!confirm("Change who you're naming? Your liked names will be kept.")) return;
             setPref(null);
-            setSeen([]);
-            setLiked([]);
-            setHistory([]);
             navigate({ to: "/" });
           }}
           className="rounded-full bg-card p-2 text-muted-foreground shadow-sm transition hover:text-foreground"
-          aria-label="Reset"
-          title="Reset"
+          aria-label="Change preference"
+          title="Change preference"
         >
           <Settings className="h-5 w-5" />
         </button>
