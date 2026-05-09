@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { ArrowDownAZ, ArrowUpDown, Star, Trash2, ChevronUp, ChevronDown, Heart, HelpCircle } from "lucide-react";
+import { ArrowDownAZ, ArrowUpDown, Star, Trash2, ChevronUp, ChevronDown, Heart, HelpCircle, Share2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { NAMES } from "@/data/names";
 import { KEYS, useLocalStorage, type LikedEntry } from "@/lib/store";
@@ -30,6 +30,51 @@ function Liked() {
     return arr;
   }, [liked, sort, filter]);
 
+  const grouped = useMemo(() => {
+    const order: Array<"girl" | "boy" | "unisex"> = ["girl", "boy", "unisex"];
+    const groups: Record<string, typeof view> = { girl: [], boy: [], unisex: [] };
+    for (const entry of view) {
+      const g = NAMES.find((n) => n.name === entry.name)?.gender ?? "unisex";
+      groups[g].push(entry);
+    }
+    return order
+      .map((g) => ({ gender: g, items: groups[g] }))
+      .filter((s) => s.items.length > 0);
+  }, [view]);
+
+  const share = async () => {
+    if (liked.length === 0) return;
+    const order: Array<"girl" | "boy" | "unisex"> = ["girl", "boy", "unisex"];
+    const labels: Record<string, string> = { girl: "👧 Girls", boy: "👦 Boys", unisex: "✨ Unisex" };
+    const sections = order
+      .map((g) => {
+        const items = liked.filter(
+          (e) => (NAMES.find((n) => n.name === e.name)?.gender ?? "unisex") === g,
+        );
+        if (items.length === 0) return null;
+        const lines = items.map((e) => {
+          const meta = NAMES.find((n) => n.name === e.name);
+          const stars = e.score > 0 ? ` ${"★".repeat(e.score)}` : "";
+          const tag = e.decision === "maybe" ? " (maybe)" : "";
+          return `• ${e.name}${stars}${tag} — ${meta?.meaning ?? ""}`;
+        });
+        return `${labels[g]}\n${lines.join("\n")}`;
+      })
+      .filter(Boolean)
+      .join("\n\n");
+    const text = `Our baby name shortlist 💛\n\n${sections}\n\nMade with BabyPicks`;
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: "Our baby name shortlist", text });
+      } else if (navigator.clipboard) {
+        await navigator.clipboard.writeText(text);
+        alert("List copied to clipboard");
+      }
+    } catch {
+      /* user cancelled */
+    }
+  };
+
   const setScore = (name: string, score: number) =>
     setLiked((l) => l.map((e) => (e.name === name ? { ...e, score } : e)));
 
@@ -53,8 +98,21 @@ function Liked() {
         style={{ background: "var(--gradient-hero)" }}
       >
         <div aria-hidden className="pointer-events-none absolute -right-12 -top-12 h-40 w-40 rounded-full bg-primary/15 blur-3xl" />
-        <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Your shortlist</p>
-        <h1 className="mt-1 text-3xl font-bold tracking-tight">Liked names</h1>
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Your shortlist</p>
+            <h1 className="mt-1 text-3xl font-bold tracking-tight">Liked names</h1>
+          </div>
+          <button
+            onClick={share}
+            disabled={liked.length === 0}
+            aria-label="Share list"
+            className="inline-flex h-10 items-center gap-1.5 rounded-full bg-card/90 px-4 text-sm font-semibold text-foreground shadow-sm ring-1 ring-black/5 backdrop-blur transition hover:bg-card disabled:opacity-50"
+          >
+            <Share2 className="h-4 w-4" />
+            Share
+          </button>
+        </div>
         <div className="mt-3 flex items-center gap-2 text-xs">
           <span className="inline-flex items-center gap-1 rounded-full bg-card/90 px-2.5 py-1 font-semibold text-foreground shadow-sm ring-1 ring-black/5 backdrop-blur">
             <Heart className="h-3 w-3 fill-current text-rose-500" />
@@ -90,7 +148,7 @@ function Liked() {
         </div>
       )}
 
-      <div className="mx-auto mt-4 max-w-md space-y-3 px-5">
+      <div className="mx-auto mt-4 max-w-md space-y-6 px-5">
         {view.length === 0 ? (
           <div className="mt-12 rounded-3xl bg-card p-8 text-center shadow-[var(--shadow-card)] ring-1 ring-black/5">
             <span className="text-5xl">💭</span>
@@ -100,8 +158,30 @@ function Liked() {
             </p>
           </div>
         ) : (
-          view.map((entry, i) => {
-            const meta = NAMES.find((n) => n.name === entry.name);
+          grouped.map((section) => {
+            const sectionLabel =
+              section.gender === "girl" ? "Girls" : section.gender === "boy" ? "Boys" : "Unisex";
+            const sectionEmoji =
+              section.gender === "girl" ? "👧" : section.gender === "boy" ? "👦" : "✨";
+            const sectionTone =
+              section.gender === "girl"
+                ? "text-pink-700"
+                : section.gender === "boy"
+                ? "text-blue-700"
+                : "text-foreground";
+            return (
+              <section key={section.gender} className="space-y-3">
+                <div className="flex items-center justify-between px-1">
+                  <h2 className={`text-sm font-bold uppercase tracking-widest ${sectionTone}`}>
+                    <span className="mr-1.5">{sectionEmoji}</span>
+                    {sectionLabel}
+                  </h2>
+                  <span className="text-xs font-semibold text-muted-foreground">
+                    {section.items.length}
+                  </span>
+                </div>
+                {section.items.map((entry, i) => {
+                  const meta = NAMES.find((n) => n.name === entry.name);
             const canReorder = sort === "manual" && filter === "all";
             const isTop = sort === "score" && i < 3 && entry.score >= 4;
             const genderTone =
@@ -177,6 +257,9 @@ function Liked() {
                   </span>
                 </div>
               </article>
+            );
+                })}
+              </section>
             );
           })
         )}
