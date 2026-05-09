@@ -18,7 +18,7 @@ export const Route = createFileRoute("/discover")({
 
 function Discover() {
   const navigate = useNavigate();
-  const [pref, , prefHydrated] = useLocalStorage<Preference>(KEYS.pref, null);
+  const [pref, setPref, prefHydrated] = useLocalStorage<Preference>(KEYS.pref, null);
   const [seen, setSeen] = useLocalStorage<string[]>(KEYS.seen, []);
   const [liked, setLiked] = useLocalStorage<LikedEntry[]>(KEYS.liked, []);
   const [history, setHistory] = useState<{ name: string; decision: Decision }[]>([]);
@@ -105,9 +105,17 @@ function Discover() {
           </h1>
         </div>
         <button
-          onClick={() => navigate({ to: "/" })}
+          onClick={() => {
+            if (!confirm("Reset and start over? This clears your preference, seen names, and liked list.")) return;
+            setPref(null);
+            setSeen([]);
+            setLiked([]);
+            setHistory([]);
+            navigate({ to: "/" });
+          }}
           className="rounded-full bg-card p-2 text-muted-foreground shadow-sm transition hover:text-foreground"
-          aria-label="Change preferences"
+          aria-label="Reset"
+          title="Reset"
         >
           <Settings className="h-5 w-5" />
         </button>
