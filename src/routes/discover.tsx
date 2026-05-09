@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Heart, X, HelpCircle, RotateCcw, Settings, ArrowLeft, ArrowRight, ArrowUp } from "lucide-react";
+import { Heart, X, HelpCircle, RotateCcw, RotateCw, ArrowLeft, ArrowRight, ArrowUp } from "lucide-react";
 import { NAMES } from "@/data/names";
 import { KEYS, useLocalStorage, type Decision, type LikedEntry, type Preference } from "@/lib/store";
 import { SwipeCard } from "@/components/SwipeCard";
@@ -114,7 +114,7 @@ function Discover() {
           aria-label="Change preference"
           title="Change preference"
         >
-          <Settings className="h-5 w-5" />
+          <RotateCw className="h-5 w-5" />
         </button>
       </header>
 
