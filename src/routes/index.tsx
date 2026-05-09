@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { Sparkles } from "lucide-react";
 import { KEYS, useLocalStorage, type Preference } from "@/lib/store";
-import heroImage from "@/assets/hero-dad-baby.jpg";
+import heroImage from "@/assets/hero-boy-girl.jpg";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -71,7 +71,7 @@ function Index() {
         <div aria-hidden className="absolute inset-0 -z-10 rounded-[2rem] bg-gradient-to-tr from-primary/20 to-accent/20 blur-2xl" />
         <img
           src={heroImage}
-          alt="Parent holding a smiling baby"
+          alt="Smiling boy and girl side by side"
           width={1280}
           height={960}
           className="w-60 max-w-full rounded-[2rem] shadow-[var(--shadow-soft)] ring-1 ring-black/5"
